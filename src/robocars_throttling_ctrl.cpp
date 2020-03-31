@@ -245,7 +245,7 @@ void RosInterface::state_msg_cb(const robocars_msgs::robocars_brain_state::Const
                 send_event(AutonomousDrivingEvent());        
             break;
         }
-        last_state=state;
+        last_state=msg->state;
     }
     
 }
