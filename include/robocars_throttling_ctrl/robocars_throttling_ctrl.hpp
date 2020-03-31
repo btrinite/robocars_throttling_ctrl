@@ -17,8 +17,8 @@ struct ManualDrivingEvent           : BaseEvent { public: ManualDrivingEvent() :
 struct AutonomousDrivingEvent       : BaseEvent { public: AutonomousDrivingEvent() : BaseEvent("AutonomousDrivingEvent") {}; };
 struct EnterQualibrateModeEvent     : BaseEvent { public: EnterQualibrateModeEvent() : BaseEvent("EnterQualibrateModeEvent") {}; };
 struct LeaveQualibrateModeEvent     : BaseEvent { public: LeaveQualibrateModeEvent() : BaseEvent("LeaveQualibrateModeEvent") {}; };
-struct RadioCHannelEvent            : BaseEvent { public: 
-    RadioCHannelEvent(const uint32_t value) : radio_channel_value(value), BaseEvent("RadioChannelEvent") {};
+struct RadioChannelEvent            : BaseEvent { public: 
+    RadioChannelEvent(const uint32_t value) : radio_channel_value(value), BaseEvent("RadioChannelEvent") {};
     uint32_t radio_channel_value; 
     };
 
@@ -43,7 +43,7 @@ class RobocarsStateMachine
         virtual void react(AutonomousDrivingEvent         const & e) { logEvent(e); };
         virtual void react(EnterQualibrateModeEvent       const & e) { logEvent(e); };
         virtual void react(LeaveQualibrateModeEvent       const & e) { logEvent(e); };
-        virtual void react(RadioCHannelEvent              const & e) {  };
+        virtual void react(RadioChannelEvent              const & e) {  };
 
         virtual void entry(void) { 
             ROS_INFO("State %s: entering", getStateName()); 
