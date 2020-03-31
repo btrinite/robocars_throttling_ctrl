@@ -96,6 +96,7 @@ class onQualibtrateMode
         };
 
         void react (TickEvent const & e) override {
+            RobocarsStateMachine::react(e);
         };
 
 };
@@ -119,6 +120,7 @@ class onIdle
 
         void react(TickEvent const & e) override {
             ri->maintainIdleActuator(); 
+            onRunningMode::react(e);
         };
 
 };
@@ -150,6 +152,7 @@ class onManualDriving
         }
 
         void react (TickEvent const & e) override {
+            onRunningMode::react(e);
         };
 
 };
@@ -290,10 +293,12 @@ void RosInterface::initQualibration() {
 
 void RosInterface::qualibrate (uint32_t throttling_value) {
     if (throttling_value < command_input_min) {
-        nh.setParam ("command_input_min", (int)throttling_value);         
+        nh.setParam ("command_input_min", (int)throttling_value);
+        command_input_min = throttling_value;
     }
     if (throttling_value > command_input_max) {
-        nh.setParam ("command_input_max", (int)throttling_value);         
+        nh.setParam ("command_input_max", (int)throttling_value);      
+        command_input_max = throttling_value;   
     }
 }
 
