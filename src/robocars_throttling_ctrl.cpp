@@ -9,6 +9,7 @@
 #include <tinyfsm.hpp>
 #include <ros/ros.h>
 #include <stdio.h>
+#include <algorithm> 
 
 #include <robocars_msgs/robocars_actuator_output.h>
 #include <robocars_msgs/robocars_actuator_ctrl_mode.h>
@@ -269,7 +270,7 @@ void RosInterface::controlActuator (uint32_t throttling_value) {
     throttlingMsg.header.stamp = ros::Time::now();
     throttlingMsg.header.seq=1;
     throttlingMsg.header.frame_id = "mainThrottling";
-    throttlingMsg.pwm = mapRange(command_input_min,command_input_max,command_output_min,command_output_max,throttling_value);
+    throttlingMsg.pwm = std::min((uint32_t)1500,mapRange(command_input_min,command_input_max,command_output_min,command_output_max,throttling_value));
 
     act_throttling_pub.publish(throttlingMsg);
 }
