@@ -292,6 +292,7 @@ void RosInterface::maintainIdleActuator () {
     throttlingMsg.header.seq=1;
     throttlingMsg.header.frame_id = "mainThrottling";
     throttlingMsg.pwm = 1500;
+    throttlingMsg.norm = 0.0;
 
     act_throttling_pub.publish(throttlingMsg);
 }
