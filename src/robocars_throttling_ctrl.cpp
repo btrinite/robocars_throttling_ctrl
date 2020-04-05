@@ -16,6 +16,7 @@
 #include <robocars_msgs/robocars_actuator_ctrl_mode.h>
 #include <robocars_msgs/robocars_radio_channels.h>
 #include <robocars_msgs/robocars_brain_state.h>
+#include <robocars_msgs/robocars_autopilot_output.h>
 
 #include <robocars_throttling_ctrl.hpp>
 
@@ -150,7 +151,7 @@ class onManualDriving
         };
 
         void react (RadioChannelEvent const & e) override {
-            ri->controlActuator(e.radio_channel_value); 
+            ri->controlActuatorFromRadio(e.radio_channel_value); 
         }
 
         void react (TickEvent const & e) override {
@@ -177,6 +178,10 @@ class onAutonomousDriving
         virtual void react(IdleStatusEvent                 const & e) override { 
             onRunningMode::react(e);
             transit<onIdle>();
+        };
+
+        void react (AutopilotEvent const & e) override {
+            ri->controlActuatorFromAutopilot(e.autopilot_value); 
         };
 
         virtual void react(ManualDrivingEvent                     const & e) override { 
@@ -236,11 +241,16 @@ void RosInterface::initSub () {
     channels_sub = nh.subscribe<robocars_msgs::robocars_radio_channels>("/radio_channels", 1, &RosInterface::channels_msg_cb, this);
     state_sub = nh.subscribe<robocars_msgs::robocars_brain_state>("/robocars_brain_state", 1, &RosInterface::state_msg_cb, this);
     mode_sub = nh.subscribe<robocars_msgs::robocars_actuator_ctrl_mode>("/robocars_actuator_ctrl_mode", 1, &RosInterface::mode_msg_cb, this);
+    autopilot_sub = nh.subscribe<robocars_msgs::robocars_autopilot_output>("/autopilot/throttling", 1, &RosInterface::autopilot_msg_cb, this);
+
 }
 
-void RosInterface::channels_msg_cb(const robocars_msgs::robocars_radio_channels::ConstPtr& msg){
-    
+void RosInterface::channels_msg_cb(const robocars_msgs::robocars_radio_channels::ConstPtr& msg){    
     send_event(RadioChannelEvent(msg->ch3));
+}
+
+void RosInterface::autopilot_msg_cb(const robocars_msgs::robocars_autopilot_output::ConstPtr& msg) {
+        send_event(AutopilotEvent(msg->norm));
 }
 
 void RosInterface::state_msg_cb(const robocars_msgs::robocars_brain_state::ConstPtr& msg) {
@@ -271,7 +281,7 @@ void RosInterface::mode_msg_cb(const robocars_msgs::robocars_actuator_ctrl_mode:
 }
 
 
-void RosInterface::controlActuator (uint32_t throttling_value) {
+void RosInterface::controlActuatorFromRadio (uint32_t throttling_value) {
 
     robocars_msgs::robocars_actuator_output throttlingMsg;
 
@@ -280,6 +290,19 @@ void RosInterface::controlActuator (uint32_t throttling_value) {
     throttlingMsg.header.frame_id = "mainThrottling";
     throttlingMsg.pwm = std::max((uint32_t)1500,mapRange(command_input_min,command_input_max,command_output_min,command_output_max,throttling_value));
     throttlingMsg.norm = std::fmax((_Float32)0.0,mapRange((_Float32)command_input_min,(_Float32)command_input_max,-1.0,1.0,(_Float32)throttling_value));
+
+    act_throttling_pub.publish(throttlingMsg);
+}
+
+void RosInterface::controlActuatorFromAutopilot (_Float32 throttling_value) {
+
+    robocars_msgs::robocars_actuator_output throttlingMsg;
+
+    throttlingMsg.header.stamp = ros::Time::now();
+    throttlingMsg.header.seq=1;
+    throttlingMsg.header.frame_id = "mainThrottling";
+    throttlingMsg.pwm = std::max((uint32_t)1500,(uint32_t)mapRange(-1.0,1.0,(_Float32)command_output_min,(_Float32)command_output_max,throttling_value));
+    throttlingMsg.norm = throttling_value;
 
     act_throttling_pub.publish(throttlingMsg);
 }
