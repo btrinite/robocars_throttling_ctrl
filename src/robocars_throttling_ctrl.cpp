@@ -26,6 +26,7 @@ static int command_input_min;
 static int command_input_max;
 static int command_output_min;
 static int command_output_max;
+static int brake_cycle_ms;
 static int loop_hz;
 
 class onRunningMode;
@@ -216,7 +217,7 @@ class onStopDriving
             onRunningMode::react(e);
             ri->brakeActuator(); 
             __tick_count++;
-            if (__tick_count%(2000/loop_hz)==0) {
+            if (__tick_count%(brake_cycle_ms/loop_hz)==0) {
                 transit<onManualDriving>();
             }
         };
@@ -253,6 +254,9 @@ void RosInterface::initParam() {
     if (!nh.hasParam("command_output_max")) {
         nh.setParam ("command_output_max", 2000);       
     }
+    if (!nh.hasParam("brake_cycle_ms")) {
+        nh.setParam("brake_cycle_ms", 1000);
+    }
     if (!nh.hasParam("loop_hz")) {
         nh.setParam ("loop_hz", 30);       
     }
@@ -262,6 +266,7 @@ void RosInterface::updateParam() {
     nh.getParam("command_input_max", command_input_max);
     nh.getParam("command_output_min", command_output_min);
     nh.getParam("command_output_max", command_output_max);
+    nh.getParam("brake_cycle_ms", brake_cycle_ms);
     nh.getParam("loop_hz", loop_hz);
 }
 
