@@ -51,7 +51,7 @@ class RobocarsStateMachine
         virtual void react(AutopilotEvent                 const & e) {  };
 
         virtual void entry(void) { 
-            ROS_INFO("State %s: entering", getStateName()); 
+            ROS_INFO("Throttling Ctrl : State %s: entering", getStateName()); 
         };  
         void         exit(void)  { };  /* no exit actions */
 
@@ -85,6 +85,7 @@ class RosInterface
         void initSub();
 
         void maintainIdleActuator();
+        void brakeActuator();
         void controlActuatorFromRadio (uint32_t steering_value);
         void controlActuatorFromAutopilot (_Float32 steering_value);
         void initQualibration();

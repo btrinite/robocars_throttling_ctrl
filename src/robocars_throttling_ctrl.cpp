@@ -33,6 +33,7 @@ class onIdle;
 class onManualDriving;
 class onAutonomousDriving;
 class onQualibtrateMode;
+class onStopDriving;
 
 class onRunningMode
 : public RobocarsStateMachine
@@ -186,12 +187,43 @@ class onAutonomousDriving
 
         virtual void react(ManualDrivingEvent                     const & e) override { 
             onRunningMode::react(e);
-            transit<onManualDriving>();
+            transit<onStopDriving>();
         };
 
 };
 
-FSM_INITIAL_STATE(RobocarsStateMachine, onIdle)
+class onStopDriving
+: public onRunningMode
+{
+    public:
+        onStopDriving() : onRunningMode("onStopDriving") {};
+
+    protected:
+
+        uint32_t __tick_count;
+
+        virtual void entry(void) { 
+            onRunningMode::entry();
+            __tick_count=0;
+        };  
+
+        virtual void react(IdleStatusEvent                 const & e) override { 
+            onRunningMode::react(e);
+            transit<onIdle>();
+        };
+
+        virtual void react(TickEvent                      const & e) override { 
+            onRunningMode::react(e);
+            ri->brakeActuator(); 
+            __tick_count++;
+            if (__tick_count%(2000/loop_hz)==0) {
+                transit<onManualDriving>();
+            }
+        };
+
+};
+
+FSM_INITIAL_STATE(RobocarsStateMachine, onIdle);
 
 
 uint32_t mapRange(uint32_t in1,uint32_t in2,uint32_t out1,uint32_t out2,uint32_t value)
@@ -316,6 +348,19 @@ void RosInterface::maintainIdleActuator () {
     throttlingMsg.header.frame_id = "mainThrottling";
     throttlingMsg.pwm = 1500;
     throttlingMsg.norm = 0.0;
+
+    act_throttling_pub.publish(throttlingMsg);
+}
+
+void RosInterface::brakeActuator () {
+
+    robocars_msgs::robocars_actuator_output throttlingMsg;
+
+    throttlingMsg.header.stamp = ros::Time::now();
+    throttlingMsg.header.seq=1;
+    throttlingMsg.header.frame_id = "mainThrottling";
+    throttlingMsg.pwm = 1000;
+    throttlingMsg.norm = -1.0;
 
     act_throttling_pub.publish(throttlingMsg);
 }
