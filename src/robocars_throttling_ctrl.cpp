@@ -27,6 +27,7 @@ static int command_input_max;
 static int command_output_min;
 static int command_output_max;
 static int brake_cycle_ms;
+static int use_brake;
 static int loop_hz;
 
 class onRunningMode;
@@ -188,7 +189,11 @@ class onAutonomousDriving
 
         virtual void react(ManualDrivingEvent                     const & e) override { 
             onRunningMode::react(e);
-            transit<onStopDriving>();
+            if (use_brake == 1) {
+                transit<onStopDriving>();
+            } else {
+                transit<onManualDriving>();
+            }
         };
 
 };
@@ -254,6 +259,9 @@ void RosInterface::initParam() {
     if (!nh.hasParam("command_output_max")) {
         nh.setParam ("command_output_max", 2000);       
     }
+    if (!nh.hasParam("use_brake")) {
+        nh.setParam("use_brake", 0);
+    }
     if (!nh.hasParam("brake_cycle_ms")) {
         nh.setParam("brake_cycle_ms", 1000);
     }
@@ -266,6 +274,7 @@ void RosInterface::updateParam() {
     nh.getParam("command_input_max", command_input_max);
     nh.getParam("command_output_min", command_output_min);
     nh.getParam("command_output_max", command_output_max);
+    nh.getParam("use_brake", use_brake);
     nh.getParam("brake_cycle_ms", brake_cycle_ms);
     nh.getParam("loop_hz", loop_hz);
 }
