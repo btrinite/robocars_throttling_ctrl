@@ -176,6 +176,7 @@ class onAutonomousDriving
         };  
 
         virtual void react(TickEvent                      const & e) override { 
+            onRunningMode::react(e);
         };
 
         virtual void react(IdleStatusEvent                 const & e) override { 
