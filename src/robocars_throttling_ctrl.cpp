@@ -1,11 +1,46 @@
 /**
- * @file offb_raw_node.cpp
- * @brief Offboard control example node, written with MAVROS version 0.19.x, PX4 Pro Flight
- * Stack and tested in Gazebo SITL
- source $src_path/Tools/setup_gazebo.bash ${src_path} ${build_path}
-
- gzserver --verbose ${src_path}/Tools/sitl_gazebo/worlds/${model}.world &
+ * @file robocars_throttling_ctrl.cpp
+ * @brief drive ESC speed accoridingly to current mode and orders received.
+ * 
+ * Copyright (c) 2020 Benoit TRINITE
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * 
+ * Topic subscribed : 
+ *  - /radio_channels : current throttling value from radio
+ *  - /robocars_brain_state : current car state
+ *  - /robocars_actuator_ctrl_mode : nominal/calibration mode
+ *  - /autopilot/throttling : current throttling decision from autopilot
+ * Topic published :
+ *  - /robocars_throttling_ctrl/output : value sent actuator 
+ * 
+ * Parameters :
+ *  - command_input_min : expected lowest value from radio channel : used to map value to -1
+ *  - command_input_max : expected highest value from radio channel : used to map value to 1
+ *  - command_output_min : expected lowest value for actuators : usually : 1000
+ *  - command_output_max : expected highest value for actuators : usually : 2000
+ *  - use_brake : use brake cycle to actively slow down car, ESC must support it
+ *  - brake_cycle_ms : duration for brake cycle
+ *  - loop_hz : main loop refresh freq.
  */
+
+
 #include <tinyfsm.hpp>
 #include <ros/ros.h>
 #include <stdio.h>
@@ -293,7 +328,7 @@ void RosInterface::initSub () {
 }
 
 void RosInterface::channels_msg_cb(const robocars_msgs::robocars_radio_channels::ConstPtr& msg){    
-    send_event(RadioChannelEvent(msg->ch3));
+    send_event(RadioChannelEvent(msg->channels[2]));
 }
 
 void RosInterface::autopilot_msg_cb(const robocars_msgs::robocars_autopilot_output::ConstPtr& msg) {
