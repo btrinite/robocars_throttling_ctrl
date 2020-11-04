@@ -341,8 +341,9 @@ void RosInterface::updateParam() {
     nh.getParam("discrete_throttling_thres2", discrete_throttling_thres2);
     nh.getParam("loop_hz", loop_hz);
 
-    thres1level = ((command_input_max-command_input_min)/2)+((command_input_max-1500)*discrete_throttling_thres1/100);
-    thres2level = ((command_input_max-command_input_min)/2)+((command_input_max-1500)*discrete_throttling_thres2/100);
+    u_int32_t idleThrottling = ((command_input_max-command_input_min)/2);
+    thres1level = idleThrottling+((command_input_max-idleThrottling)*discrete_throttling_thres1/100);
+    thres2level = idleThrottling+((command_input_max-idleThrottling)*discrete_throttling_thres2/100);
 }
 
 void RosInterface::initPub () {
