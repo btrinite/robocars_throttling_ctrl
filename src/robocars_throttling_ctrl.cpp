@@ -63,6 +63,7 @@ static int command_output_min;
 static int command_output_max;
 static int brake_cycle_ms;
 static int use_brake;
+bool discrete_throttling = false;
 static int loop_hz;
 
 class onRunningMode;
@@ -268,6 +269,16 @@ class onStopDriving
 FSM_INITIAL_STATE(RobocarsStateMachine, onIdle);
 
 
+uint32_t discretizeValue(uint32_t tres1,uint32_t tres2,uint32_t out1,uint32_t out2,uint32_t value)
+{
+  u_int32_t level1 = ((command_input_max-command_input_min)/2)+((command_input_max-1500)*tres1/100);
+  u_int32_t level2 = ((command_input_max-command_input_min)/2)+((command_input_max-1500)*tres2/100);
+  if (value<level1) {value=0;}
+  if (value>=level1 && value<level2) {value=out1;}
+  if (value>=level2) {value=out2;}
+  return value;
+}
+
 uint32_t mapRange(uint32_t in1,uint32_t in2,uint32_t out1,uint32_t out2,uint32_t value)
 {
   if (value<in1) {value=in1;}
@@ -301,6 +312,9 @@ void RosInterface::initParam() {
     if (!nh.hasParam("brake_cycle_ms")) {
         nh.setParam("brake_cycle_ms", 1000);
     }
+    if (!nh.hasParam("discrete_throttling")) {
+        nh.setParam ("discrete_throttling", false);       
+    }
     if (!nh.hasParam("loop_hz")) {
         nh.setParam ("loop_hz", 30);       
     }
@@ -312,6 +326,7 @@ void RosInterface::updateParam() {
     nh.getParam("command_output_max", command_output_max);
     nh.getParam("use_brake", use_brake);
     nh.getParam("brake_cycle_ms", brake_cycle_ms);
+    nh.getParam("discrete_throttling", discrete_throttling);
     nh.getParam("loop_hz", loop_hz);
 }
 
@@ -370,6 +385,9 @@ void RosInterface::controlActuatorFromRadio (uint32_t throttling_value) {
     throttlingMsg.header.stamp = ros::Time::now();
     throttlingMsg.header.seq=1;
     throttlingMsg.header.frame_id = "mainThrottling";
+    if (discrete_throttling) {
+        throttling_value = discretizeValue(20,80,1500+(command_output_max-1500)*40/100,command_output_max,throttling_value);
+    }
     throttlingMsg.pwm = std::max((uint32_t)1500,mapRange(command_input_min,command_input_max,command_output_min,command_output_max,throttling_value));
     throttlingMsg.norm = std::fmax((_Float32)0.0,mapRange((_Float32)command_input_min,(_Float32)command_input_max,-1.0,1.0,(_Float32)throttling_value));
 
