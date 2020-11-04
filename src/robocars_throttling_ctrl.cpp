@@ -67,8 +67,12 @@ bool discrete_throttling = false;
 static int loop_hz;
 static int discrete_throttling_thres1;
 static int discrete_throttling_thres2;
+static int discrete_throttling_out_level1;
+static int discrete_throttling_out_level2;
 u_int32_t thres1level;
 u_int32_t thres2level;
+u_int32_t out1Level;
+u_int32_t out2Level;
 
 class onRunningMode;
 class onIdle;
@@ -181,8 +185,12 @@ class onManualDriving
 
         void entry(void) override {
             onRunningMode::entry();
-            ROS_INFO("Throttling Ctrl: threshold 1 level set to %d", thres1level);
-            ROS_INFO("Throttling Ctrl: threshold 2 level set to %d", thres2level);
+            if (discrete_throttling) {
+                ROS_INFO("Throttling Ctrl: threshold level 1 set to %d", thres1level);
+                ROS_INFO("Throttling Ctrl: threshold level 2 set to %d", thres2level);
+                ROS_INFO("Throttling Ctrl: Output level 1 set to %d", out2Level);
+                ROS_INFO("Throttling Ctrl: Output level 2 set to %d", out2Level);
+            }
         };
 
         void react (AutonomousDrivingEvent const & e) override {
@@ -325,6 +333,12 @@ void RosInterface::initParam() {
     if (!nh.hasParam("discrete_throttling_thres2")) {
         nh.setParam ("discrete_throttling_thres2", 70);       
     }
+    if (!nh.hasParam("discrete_throttling_out_level1")) {
+        nh.setParam ("discrete_throttling_out_level1", 40);       
+    }
+    if (!nh.hasParam("discrete_throttling_out_level2")) {
+        nh.setParam ("discrete_throttling_out_level2", 100);       
+    }
     if (!nh.hasParam("loop_hz")) {
         nh.setParam ("loop_hz", 30);       
     }
@@ -339,11 +353,18 @@ void RosInterface::updateParam() {
     nh.getParam("discrete_throttling", discrete_throttling);
     nh.getParam("discrete_throttling_thres1", discrete_throttling_thres1);
     nh.getParam("discrete_throttling_thres2", discrete_throttling_thres2);
+    nh.getParam("discrete_throttling_out_level1", discrete_throttling_out_level1);
+    nh.getParam("discrete_throttling_out_level2", discrete_throttling_out_level2);
     nh.getParam("loop_hz", loop_hz);
 
-    u_int32_t idleThrottling = ((command_input_max-command_input_min)/2);
-    thres1level = idleThrottling+((command_input_max-idleThrottling)*discrete_throttling_thres1/100);
-    thres2level = idleThrottling+((command_input_max-idleThrottling)*discrete_throttling_thres2/100);
+    u_int32_t idleThrottlingIn = ((command_input_max-command_input_min)/2);
+    thres1level = idleThrottlingIn+((command_input_max-idleThrottlingIn)*discrete_throttling_thres1/100);
+    thres2level = idleThrottlingIn+((command_input_max-idleThrottlingIn)*discrete_throttling_thres2/100);
+
+    u_int32_t idleThrottlingOut = ((command_output_max-command_output_min)/2);
+    out1Level = idleThrottlingOut+(command_output_max-idleThrottlingOut)*discrete_throttling_out_level1/100;
+    out2Level = idleThrottlingOut+(command_output_max-idleThrottlingOut)*discrete_throttling_out_level2/100;
+
 }
 
 void RosInterface::initPub () {
@@ -402,7 +423,7 @@ void RosInterface::controlActuatorFromRadio (uint32_t throttling_value) {
     throttlingMsg.header.seq=1;
     throttlingMsg.header.frame_id = "mainThrottling";
     if (discrete_throttling) {
-        throttling_value = discretizeValue(1500+(command_output_max-1500)*40/100,command_output_max,throttling_value);
+        throttling_value = discretizeValue(out1Level,out2Level,throttling_value);
     }
     throttlingMsg.pwm = std::max((uint32_t)1500,mapRange(command_input_min,command_input_max,command_output_min,command_output_max,throttling_value));
     throttlingMsg.norm = std::fmax((_Float32)0.0,mapRange((_Float32)command_input_min,(_Float32)command_input_max,-1.0,1.0,(_Float32)throttling_value));
