@@ -277,10 +277,10 @@ FSM_INITIAL_STATE(RobocarsStateMachine, onIdle);
 
 uint32_t discretizeValue(uint32_t out1,uint32_t out2,uint32_t value)
 {
-  if (value<thres1level) {value=0;}
-  if (value>=thres1level && value<thres2level) {value=out1;}
-  if (value>=thres2level) {value=out2;}
-  return value;
+  if (value<thres1level) {return 0;}
+  if (value>=thres1level && value<thres2level) {return out1;}
+  if (value>=thres2level) {return out2;}
+  return 0;
 }
 
 uint32_t mapRange(uint32_t in1,uint32_t in2,uint32_t out1,uint32_t out2,uint32_t value)
