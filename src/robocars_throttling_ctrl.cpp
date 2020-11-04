@@ -357,7 +357,7 @@ void RosInterface::updateParam() {
     nh.getParam("discrete_throttling_level2", discrete_throttling_level2);
     nh.getParam("loop_hz", loop_hz);
 
-    u_int32_t idleThrottlingIn = ((command_input_max-command_input_min)/2);
+    u_int32_t idleThrottlingIn = command_input_min+((command_input_max-command_input_min)/2);
     thres1level = idleThrottlingIn+((command_input_max-idleThrottlingIn)*discrete_throttling_thres1/100);
     thres2level = idleThrottlingIn+((command_input_max-idleThrottlingIn)*discrete_throttling_thres2/100);
 
@@ -427,7 +427,7 @@ void RosInterface::controlActuatorFromRadio (uint32_t throttling_value) {
     throttlingMsg.pwm = std::max((uint32_t)1500,mapRange(command_input_min,command_input_max,command_output_min,command_output_max,throttling_value));
     throttlingMsg.norm = std::fmax((_Float32)0.0,mapRange((_Float32)command_input_min,(_Float32)command_input_max,-1.0,1.0,(_Float32)throttling_value));
 
-    act_throttling_pub.publish(throttlingMsg);
+    act_throttling_pub.publish(throttlingMsg);discretizeValue
 }
 
 void RosInterface::controlActuatorFromAutopilot (_Float32 throttling_value) {
