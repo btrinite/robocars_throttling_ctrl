@@ -427,7 +427,7 @@ void RosInterface::controlActuatorFromRadio (uint32_t throttling_value) {
     throttlingMsg.pwm = std::max((uint32_t)1500,mapRange(command_input_min,command_input_max,command_output_min,command_output_max,throttling_value));
     throttlingMsg.norm = std::fmax((_Float32)0.0,mapRange((_Float32)command_input_min,(_Float32)command_input_max,-1.0,1.0,(_Float32)throttling_value));
 
-    act_throttling_pub.publish(throttlingMsg);discretizeValue
+    act_throttling_pub.publish(throttlingMsg);
 }
 
 void RosInterface::controlActuatorFromAutopilot (_Float32 throttling_value) {
