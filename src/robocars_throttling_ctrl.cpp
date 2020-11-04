@@ -67,8 +67,8 @@ bool discrete_throttling = false;
 static int loop_hz;
 static int discrete_throttling_thres1;
 static int discrete_throttling_thres2;
-static int discrete_throttling_out_level1;
-static int discrete_throttling_out_level2;
+static int discrete_throttling_level1;
+static int discrete_throttling_level2;
 u_int32_t thres1level;
 u_int32_t thres2level;
 u_int32_t out1Level;
@@ -188,7 +188,7 @@ class onManualDriving
             if (discrete_throttling) {
                 ROS_INFO("Throttling Ctrl: threshold level 1 set to %d", thres1level);
                 ROS_INFO("Throttling Ctrl: threshold level 2 set to %d", thres2level);
-                ROS_INFO("Throttling Ctrl: Output level 1 set to %d", out2Level);
+                ROS_INFO("Throttling Ctrl: Output level 1 set to %d", out1Level);
                 ROS_INFO("Throttling Ctrl: Output level 2 set to %d", out2Level);
             }
         };
@@ -333,11 +333,11 @@ void RosInterface::initParam() {
     if (!nh.hasParam("discrete_throttling_thres2")) {
         nh.setParam ("discrete_throttling_thres2", 70);       
     }
-    if (!nh.hasParam("discrete_throttling_out_level1")) {
-        nh.setParam ("discrete_throttling_out_level1", 40);       
+    if (!nh.hasParam("discrete_throttling_level1")) {
+        nh.setParam ("discrete_throttling_level1", 40);       
     }
-    if (!nh.hasParam("discrete_throttling_out_level2")) {
-        nh.setParam ("discrete_throttling_out_level2", 100);       
+    if (!nh.hasParam("discrete_throttling_level2")) {
+        nh.setParam ("discrete_throttling_level2", 100);       
     }
     if (!nh.hasParam("loop_hz")) {
         nh.setParam ("loop_hz", 30);       
@@ -353,17 +353,16 @@ void RosInterface::updateParam() {
     nh.getParam("discrete_throttling", discrete_throttling);
     nh.getParam("discrete_throttling_thres1", discrete_throttling_thres1);
     nh.getParam("discrete_throttling_thres2", discrete_throttling_thres2);
-    nh.getParam("discrete_throttling_out_level1", discrete_throttling_out_level1);
-    nh.getParam("discrete_throttling_out_level2", discrete_throttling_out_level2);
+    nh.getParam("discrete_throttling_level1", discrete_throttling_level1);
+    nh.getParam("discrete_throttling_level2", discrete_throttling_level2);
     nh.getParam("loop_hz", loop_hz);
 
     u_int32_t idleThrottlingIn = ((command_input_max-command_input_min)/2);
     thres1level = idleThrottlingIn+((command_input_max-idleThrottlingIn)*discrete_throttling_thres1/100);
     thres2level = idleThrottlingIn+((command_input_max-idleThrottlingIn)*discrete_throttling_thres2/100);
 
-    u_int32_t idleThrottlingOut = ((command_output_max-command_output_min)/2);
-    out1Level = idleThrottlingOut+(command_output_max-idleThrottlingOut)*discrete_throttling_out_level1/100;
-    out2Level = idleThrottlingOut+(command_output_max-idleThrottlingOut)*discrete_throttling_out_level2/100;
+    out1Level = idleThrottlingIn+((command_input_max-idleThrottlingIn)*discrete_throttling_level1)/100;
+    out2Level = idleThrottlingIn+((command_input_max-idleThrottlingIn)*discrete_throttling_level2)/100;
 
 }
 
