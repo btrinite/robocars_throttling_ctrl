@@ -181,6 +181,8 @@ class onManualDriving
 
         void entry(void) override {
             onRunningMode::entry();
+            ROS_INFO("Throttling Ctrl: threshold 1 level set to %d", thres1level);
+            ROS_INFO("Throttling Ctrl: threshold 2 level set to %d", thres2level);
         };
 
         void react (AutonomousDrivingEvent const & e) override {
@@ -341,10 +343,6 @@ void RosInterface::updateParam() {
 
     thres1level = ((command_input_max-command_input_min)/2)+((command_input_max-1500)*discrete_throttling_thres1/100);
     thres2level = ((command_input_max-command_input_min)/2)+((command_input_max-1500)*discrete_throttling_thres2/100);
-    ROS_INFO("Throttling Ctrl: threshold 1 level set to %d", thres1level);
-    ROS_INFO("Throttling Ctrl: threshold 2 level set to %d", thres2level);
-
-
 }
 
 void RosInterface::initPub () {
