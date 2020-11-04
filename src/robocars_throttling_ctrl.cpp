@@ -65,6 +65,10 @@ static int brake_cycle_ms;
 static int use_brake;
 bool discrete_throttling = false;
 static int loop_hz;
+static int discrete_throttling_thres1;
+static int discrete_throttling_thres2;
+u_int32_t thres1level;
+u_int32_t thres2level;
 
 class onRunningMode;
 class onIdle;
@@ -269,13 +273,11 @@ class onStopDriving
 FSM_INITIAL_STATE(RobocarsStateMachine, onIdle);
 
 
-uint32_t discretizeValue(uint32_t tres1,uint32_t tres2,uint32_t out1,uint32_t out2,uint32_t value)
+uint32_t discretizeValue(uint32_t out1,uint32_t out2,uint32_t value)
 {
-  u_int32_t level1 = ((command_input_max-command_input_min)/2)+((command_input_max-1500)*tres1/100);
-  u_int32_t level2 = ((command_input_max-command_input_min)/2)+((command_input_max-1500)*tres2/100);
-  if (value<level1) {value=0;}
-  if (value>=level1 && value<level2) {value=out1;}
-  if (value>=level2) {value=out2;}
+  if (value<thres1level) {value=0;}
+  if (value>=thres1level && value<thres2level) {value=out1;}
+  if (value>=thres2level) {value=out2;}
   return value;
 }
 
@@ -315,6 +317,12 @@ void RosInterface::initParam() {
     if (!nh.hasParam("discrete_throttling")) {
         nh.setParam ("discrete_throttling", false);       
     }
+    if (!nh.hasParam("discrete_throttling_thres1")) {
+        nh.setParam ("discrete_throttling_thres1", 20);       
+    }
+    if (!nh.hasParam("discrete_throttling_thres2")) {
+        nh.setParam ("discrete_throttling_thres2", 70);       
+    }
     if (!nh.hasParam("loop_hz")) {
         nh.setParam ("loop_hz", 30);       
     }
@@ -327,7 +335,16 @@ void RosInterface::updateParam() {
     nh.getParam("use_brake", use_brake);
     nh.getParam("brake_cycle_ms", brake_cycle_ms);
     nh.getParam("discrete_throttling", discrete_throttling);
+    nh.getParam("discrete_throttling_thres1", discrete_throttling_thres1);
+    nh.getParam("discrete_throttling_thres2", discrete_throttling_thres2);
     nh.getParam("loop_hz", loop_hz);
+
+    thres1level = ((command_input_max-command_input_min)/2)+((command_input_max-1500)*discrete_throttling_thres1/100);
+    thres2level = ((command_input_max-command_input_min)/2)+((command_input_max-1500)*discrete_throttling_thres2/100);
+    ROS_INFO("Throttling Ctrl: threshold 1 level set to %d", thres1level);
+    ROS_INFO("Throttling Ctrl: threshold 2 level set to %d", thres2level);
+
+
 }
 
 void RosInterface::initPub () {
@@ -386,7 +403,7 @@ void RosInterface::controlActuatorFromRadio (uint32_t throttling_value) {
     throttlingMsg.header.seq=1;
     throttlingMsg.header.frame_id = "mainThrottling";
     if (discrete_throttling) {
-        throttling_value = discretizeValue(20,80,1500+(command_output_max-1500)*40/100,command_output_max,throttling_value);
+        throttling_value = discretizeValue(1500+(command_output_max-1500)*40/100,command_output_max,throttling_value);
     }
     throttlingMsg.pwm = std::max((uint32_t)1500,mapRange(command_input_min,command_input_max,command_output_min,command_output_max,throttling_value));
     throttlingMsg.norm = std::fmax((_Float32)0.0,mapRange((_Float32)command_input_min,(_Float32)command_input_max,-1.0,1.0,(_Float32)throttling_value));
