@@ -452,7 +452,7 @@ void RosInterface::maintainIdleActuator () {
 
     throttlingMsg.header.stamp = ros::Time::now();
     throttlingMsg.header.seq=1;
-    throttlingMsg.header.frame_id = "mainThrottling";
+    throttlingMsg.header.frame_id = "0";
     throttlingMsg.pwm = 1500;
     throttlingMsg.norm = 0.0;
 
@@ -465,7 +465,7 @@ void RosInterface::brakeActuator () {
 
     throttlingMsg.header.stamp = ros::Time::now();
     throttlingMsg.header.seq=1;
-    throttlingMsg.header.frame_id = "mainThrottling";
+    throttlingMsg.header.frame_id = "0";
     throttlingMsg.pwm = 1000;
     throttlingMsg.norm = -1.0;
 
