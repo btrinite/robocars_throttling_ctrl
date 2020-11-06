@@ -47,8 +47,9 @@ struct RadioChannelEvent            : BaseEvent { public:
     uint32_t radio_channel_value; 
     };
 struct AutopilotEvent            : BaseEvent { public: 
-    AutopilotEvent(const _Float32 value) : autopilot_value(value), BaseEvent("AutopilotEvent") {};
+    AutopilotEvent(const _Float32 value, const __uint32_t carId) : autopilot_value(value), carId(carId), BaseEvent("AutopilotEvent") {};
     _Float32 autopilot_value; 
+    __uint32_t carId;
     };
 
 class RobocarsStateMachine
@@ -112,7 +113,7 @@ class RosInterface
         void maintainIdleActuator();
         void brakeActuator();
         void controlActuatorFromRadio (uint32_t steering_value);
-        void controlActuatorFromAutopilot (_Float32 steering_value);
+        void controlActuatorFromAutopilot (_Float32 steering_value, __uint32_t carId);
         void initQualibration();
         void qualibrate (uint32_t throttling_value);
 

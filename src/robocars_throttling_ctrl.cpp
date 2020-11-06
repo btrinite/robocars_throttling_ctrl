@@ -235,7 +235,7 @@ class onAutonomousDriving
         };
 
         void react (AutopilotEvent const & e) override {
-            ri->controlActuatorFromAutopilot(e.autopilot_value); 
+            ri->controlActuatorFromAutopilot(e.autopilot_value, e.carId); 
         };
 
         virtual void react(ManualDrivingEvent                     const & e) override { 
@@ -383,7 +383,8 @@ void RosInterface::channels_msg_cb(const robocars_msgs::robocars_radio_channels:
 }
 
 void RosInterface::autopilot_msg_cb(const robocars_msgs::robocars_autopilot_output::ConstPtr& msg) {
-        send_event(AutopilotEvent(msg->norm));
+        unsigned int carId = stoi(msg->header.frame_id);
+        send_event(AutopilotEvent(msg->norm, carId));
 }
 
 void RosInterface::state_msg_cb(const robocars_msgs::robocars_brain_state::ConstPtr& msg) {
@@ -420,7 +421,7 @@ void RosInterface::controlActuatorFromRadio (uint32_t throttling_value) {
 
     throttlingMsg.header.stamp = ros::Time::now();
     throttlingMsg.header.seq=1;
-    throttlingMsg.header.frame_id = "mainThrottling";
+    throttlingMsg.header.frame_id = "0";
     if (discrete_throttling) {
         throttling_value = discretizeValue(out1Level,out2Level,throttling_value);
     }
@@ -430,13 +431,15 @@ void RosInterface::controlActuatorFromRadio (uint32_t throttling_value) {
     act_throttling_pub.publish(throttlingMsg);
 }
 
-void RosInterface::controlActuatorFromAutopilot (_Float32 throttling_value) {
+void RosInterface::controlActuatorFromAutopilot (_Float32 throttling_value, __uint32_t carId) {
 
     robocars_msgs::robocars_actuator_output throttlingMsg;
+    char frame_id[100];
+    snprintf(frame_id, sizeof(frame_id), "%d", carId);
 
     throttlingMsg.header.stamp = ros::Time::now();
     throttlingMsg.header.seq=1;
-    throttlingMsg.header.frame_id = "mainThrottling";
+    throttlingMsg.header.frame_id = frame_id;
     throttlingMsg.pwm = std::max((uint32_t)1500,(uint32_t)mapRange(-1.0,1.0,(_Float32)command_output_min,(_Float32)command_output_max,throttling_value));
     throttlingMsg.norm = throttling_value;
 
