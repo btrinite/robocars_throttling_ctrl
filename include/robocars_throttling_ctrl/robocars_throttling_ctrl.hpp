@@ -119,7 +119,7 @@ class RosInterface
 
     private:
 
-        void channels_msg_cb(const robocars_msgs::robocars_radio_channels::ConstPtr& msg);
+        void channels_msg_cb(const std_msgs::Int16MultiArray::ConstPtr& msg);
         void state_msg_cb(const robocars_msgs::robocars_brain_state::ConstPtr& msg);
         void mode_msg_cb(const robocars_msgs::robocars_actuator_ctrl_mode::ConstPtr& msg);
         void autopilot_msg_cb(const robocars_msgs::robocars_autopilot_output::ConstPtr& msg);

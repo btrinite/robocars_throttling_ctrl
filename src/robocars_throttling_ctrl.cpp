@@ -47,6 +47,8 @@
 #include <algorithm> 
 #include <cmath>
 
+#include <std_msgs/Int16MultiArray.h>
+
 #include <robocars_msgs/robocars_actuator_output.h>
 #include <robocars_msgs/robocars_actuator_ctrl_mode.h>
 #include <robocars_msgs/robocars_radio_channels.h>
@@ -376,15 +378,15 @@ void RosInterface::initPub () {
 }
 
 void RosInterface::initSub () {
-    channels_sub = nh.subscribe<robocars_msgs::robocars_radio_channels>("/radio_channels", 1, &RosInterface::channels_msg_cb, this);
+    channels_sub = nh.subscribe<std_msgs::Int16MultiArray>("/radio_channels", 1, &RosInterface::channels_msg_cb, this);
     state_sub = nh.subscribe<robocars_msgs::robocars_brain_state>("/robocars_brain_state", 1, &RosInterface::state_msg_cb, this);
     mode_sub = nh.subscribe<robocars_msgs::robocars_actuator_ctrl_mode>("/robocars_actuator_ctrl_mode", 1, &RosInterface::mode_msg_cb, this);
     autopilot_sub = nh.subscribe<robocars_msgs::robocars_autopilot_output>("/autopilot/throttling", 1, &RosInterface::autopilot_msg_cb, this);
 
 }
 
-void RosInterface::channels_msg_cb(const robocars_msgs::robocars_radio_channels::ConstPtr& msg){    
-    send_event(RadioChannelEvent(msg->channels[2]));
+void RosInterface::channels_msg_cb(const std_msgs::Int16MultiArray::ConstPtr& msg){    
+    send_event(RadioChannelEvent(msg->data[2]));
 }
 
 void RosInterface::autopilot_msg_cb(const robocars_msgs::robocars_autopilot_output::ConstPtr& msg) {
