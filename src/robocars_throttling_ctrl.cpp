@@ -48,6 +48,8 @@
 #include <cmath>
 
 #include <std_msgs/Int16MultiArray.h>
+#include <std_msgs/Int16.h>
+#include <std_msgs/Float32.h>
 
 #include <robocars_msgs/robocars_actuator_output.h>
 #include <robocars_msgs/robocars_actuator_ctrl_mode.h>
@@ -374,7 +376,8 @@ void RosInterface::updateParam() {
 }
 
 void RosInterface::initPub () {
-    act_throttling_pub = nh.advertise<robocars_msgs::robocars_actuator_output>("output", 10);
+    act_throttling_output_pub = nh.advertise<std_msgs::Int16>("output", 10);
+    act_throttling_norm_pub = nh.advertise<std_msgs::Float32>("norm", 10);
 }
 
 void RosInterface::initSub () {
@@ -424,64 +427,60 @@ void RosInterface::mode_msg_cb(const robocars_msgs::robocars_actuator_ctrl_mode:
 
 void RosInterface::controlActuatorFromRadio (uint32_t throttling_value) {
 
-    robocars_msgs::robocars_actuator_output throttlingMsg;
+    std_msgs::Int16 throttlingOutputMsg;
+    std_msgs::Float32 throttlingNormMsg;
 
-    throttlingMsg.header.stamp = ros::Time::now();
-    throttlingMsg.header.seq=1;
-    throttlingMsg.header.frame_id = "0";
     if (discrete_throttling) {
         throttling_value = discretizeValue(out1Level,out2Level,throttling_value);
     }
     if (reverse==false) {
-        throttlingMsg.pwm = std::max((uint32_t)1500,mapRange(command_input_min,command_input_max,command_output_min,command_output_max,throttling_value));
-        throttlingMsg.norm = std::fmax((_Float32)0.0,mapRange((_Float32)command_input_min,(_Float32)command_input_max,-1.0,1.0,(_Float32)throttling_value));
+        throttlingOutputMsg.data = std::max((uint32_t)1500,mapRange(command_input_min,command_input_max,command_output_min,command_output_max,throttling_value));
+        throttlingNormMsg.data = std::fmax((_Float32)0.0,mapRange((_Float32)command_input_min,(_Float32)command_input_max,-1.0,1.0,(_Float32)throttling_value));
     } else {
-        throttlingMsg.pwm = std::max((uint32_t)1000,mapRange(command_input_min,command_input_max,command_output_min,command_output_max,throttling_value));
-        throttlingMsg.norm = std::fmax((_Float32)-1.0,mapRange((_Float32)command_input_min,(_Float32)command_input_max,-1.0,1.0,(_Float32)throttling_value));
+        throttlingOutputMsg.data = std::max((uint32_t)1000,mapRange(command_input_min,command_input_max,command_output_min,command_output_max,throttling_value));
+        throttlingNormMsg.data = std::fmax((_Float32)-1.0,mapRange((_Float32)command_input_min,(_Float32)command_input_max,-1.0,1.0,(_Float32)throttling_value));
     }
 
-    act_throttling_pub.publish(throttlingMsg);
+    act_throttling_output_pub.publish(throttlingOutputMsg);
+    act_throttling_output_pub.publish(throttlingNormMsg);
 }
 
 void RosInterface::controlActuatorFromAutopilot (_Float32 throttling_value, __uint32_t carId) {
 
-    robocars_msgs::robocars_actuator_output throttlingMsg;
+    std_msgs::Int16 throttlingOutputMsg;
+    std_msgs::Float32 throttlingNormMsg;
     char frame_id[100];
     snprintf(frame_id, sizeof(frame_id), "%d", carId);
 
-    throttlingMsg.header.stamp = ros::Time::now();
-    throttlingMsg.header.seq=1;
-    throttlingMsg.header.frame_id = frame_id;
-    throttlingMsg.pwm = std::max((uint32_t)1500,(uint32_t)mapRange(-1.0,1.0,(_Float32)command_output_min,(_Float32)command_output_max,throttling_value));
-    throttlingMsg.norm = throttling_value;
+    throttlingOutputMsg.data = std::max((uint32_t)1500,(uint32_t)mapRange(-1.0,1.0,(_Float32)command_output_min,(_Float32)command_output_max,throttling_value));
+    throttlingNormMsg.data = throttling_value;
 
-    act_throttling_pub.publish(throttlingMsg);
+    act_throttling_output_pub.publish(throttlingOutputMsg);
+    act_throttling_output_pub.publish(throttlingNormMsg);
 }
 
 void RosInterface::maintainIdleActuator () {
 
-    robocars_msgs::robocars_actuator_output throttlingMsg;
+    std_msgs::Int16 throttlingOutputMsg;
+    std_msgs::Float32 throttlingNormMsg;
 
-    throttlingMsg.header.stamp = ros::Time::now();
-    throttlingMsg.header.seq=1;
-    throttlingMsg.header.frame_id = "0";
-    throttlingMsg.pwm = 1500;
-    throttlingMsg.norm = 0.0;
+    throttlingOutputMsg.data = 1500;
+    throttlingNormMsg.data = 0.0;
 
-    act_throttling_pub.publish(throttlingMsg);
+    act_throttling_output_pub.publish(throttlingOutputMsg);
+    act_throttling_output_pub.publish(throttlingNormMsg);
 }
 
 void RosInterface::brakeActuator () {
 
-    robocars_msgs::robocars_actuator_output throttlingMsg;
+    std_msgs::Int16 throttlingOutputMsg;
+    std_msgs::Float32 throttlingNormMsg;
 
-    throttlingMsg.header.stamp = ros::Time::now();
-    throttlingMsg.header.seq=1;
-    throttlingMsg.header.frame_id = "0";
-    throttlingMsg.pwm = 1000;
-    throttlingMsg.norm = -1.0;
+    throttlingOutputMsg.data = 1000;
+    throttlingNormMsg.data = -1.0;
 
-    act_throttling_pub.publish(throttlingMsg);
+    act_throttling_output_pub.publish(throttlingOutputMsg);
+    act_throttling_output_pub.publish(throttlingNormMsg);
 }
 
 void RosInterface::initQualibration() {

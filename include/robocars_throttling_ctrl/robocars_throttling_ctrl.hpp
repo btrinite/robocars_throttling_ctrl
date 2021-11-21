@@ -125,7 +125,8 @@ class RosInterface
         void autopilot_msg_cb(const robocars_msgs::robocars_autopilot_output::ConstPtr& msg);
 
         ros::NodeHandle nh;
-        ros::Publisher act_throttling_pub;
+        ros::Publisher act_throttling_output_pub;
+        ros::Publisher act_throttling_norm_pub;
         ros::Subscriber channels_sub;
         ros::Subscriber state_sub;
         ros::Subscriber mode_sub;
