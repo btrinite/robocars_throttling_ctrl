@@ -28,7 +28,7 @@
  *  - /robocars_actuator_ctrl_mode : nominal/calibration mode
  *  - /autopilot/throttling : current throttling decision from autopilot
  * Topic published :
- *  - /robocars_throttling_ctrl/output : value sent actuator 
+ *  - /robocars_throttle_ctrl/output : value sent actuator 
  * 
  * Parameters :
  *  - command_input_min : expected lowest value from radio channel : used to map value to -1
