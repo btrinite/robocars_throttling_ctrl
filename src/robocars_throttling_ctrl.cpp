@@ -442,7 +442,7 @@ void RosInterface::controlActuatorFromRadio (uint32_t throttling_value) {
     }
 
     act_throttling_output_pub.publish(throttlingOutputMsg);
-    act_throttling_output_pub.publish(throttlingNormMsg);
+    act_throttling_norm_pub.publish(throttlingNormMsg);
 }
 
 void RosInterface::controlActuatorFromAutopilot (_Float32 throttling_value, __uint32_t carId) {
