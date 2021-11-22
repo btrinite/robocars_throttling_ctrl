@@ -456,7 +456,7 @@ void RosInterface::controlActuatorFromAutopilot (_Float32 throttling_value, __ui
     throttlingNormMsg.data = throttling_value;
 
     act_throttling_output_pub.publish(throttlingOutputMsg);
-    act_throttling_output_pub.publish(throttlingNormMsg);
+    act_throttling_norm_pub.publish(throttlingNormMsg);
 }
 
 void RosInterface::maintainIdleActuator () {
@@ -468,7 +468,7 @@ void RosInterface::maintainIdleActuator () {
     throttlingNormMsg.data = 0.0;
 
     act_throttling_output_pub.publish(throttlingOutputMsg);
-    act_throttling_output_pub.publish(throttlingNormMsg);
+    act_throttling_norm_pub.publish(throttlingNormMsg);
 }
 
 void RosInterface::brakeActuator () {
@@ -480,7 +480,7 @@ void RosInterface::brakeActuator () {
     throttlingNormMsg.data = -1.0;
 
     act_throttling_output_pub.publish(throttlingOutputMsg);
-    act_throttling_output_pub.publish(throttlingNormMsg);
+    act_throttling_norm_pub.publish(throttlingNormMsg);
 }
 
 void RosInterface::initQualibration() {
