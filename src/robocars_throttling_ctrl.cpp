@@ -173,6 +173,11 @@ class onIdle
             transit<onManualDriving>();
         };
 
+        void react(EnterQualibrateModeEvent const & e) override { 
+            onRunningMode::react(e);
+            transit<onQualibtrateMode>();
+        };
+
         void react(TickEvent const & e) override {
             ri->maintainIdleActuator(); 
             onRunningMode::react(e);
