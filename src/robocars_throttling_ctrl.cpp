@@ -451,10 +451,10 @@ void RosInterface::controlActuatorFromRadio (uint32_t throttling_value) {
     
     if (throttling_value<=command_input_idle) {
         throttlingOutputMsg.data = mapRange(command_input_min,command_input_idle,command_output_min,command_output_idle,throttling_value);
-        throttlingNormMsg.data = mapRange((_Float32)command_input_min,(_Float32)command_input_idle,-1.0,0.0,(_Float32)throttling_value));
+        throttlingNormMsg.data = mapRange((_Float32)command_input_min,(_Float32)command_input_idle,-1.0,0.0,(_Float32)throttling_value);
     } else {
         throttlingOutputMsg.data = mapRange(command_input_idle,command_input_max,command_output_idle,command_output_max,throttling_value);
-        throttlingNormMsg.data = mapRange((_Float32)command_input_idle,(_Float32)command_input_max,0.0,1.0,(_Float32)throttling_value));        
+        throttlingNormMsg.data = mapRange((_Float32)command_input_idle,(_Float32)command_input_max,0.0,1.0,(_Float32)throttling_value);        
     }
 
     if (reverse==false) {
