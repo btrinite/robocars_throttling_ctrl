@@ -389,7 +389,7 @@ void RosInterface::initSub () {
 }
 
 void RosInterface::channels_msg_cb(const std_msgs::Int16MultiArray::ConstPtr& msg){    
-    send_event(RadioChannelEvent(msg->data[2]));
+    send_event(RadioChannelEvent(msg->data[0]));
 }
 
 void RosInterface::autopilot_msg_cb(const robocars_msgs::robocars_autopilot_output::ConstPtr& msg) {
