@@ -62,8 +62,10 @@
 RosInterface * ri;
 
 static int command_input_min;
+static int command_input_idle;
 static int command_input_max;
 static int command_output_min;
+static int command_output_idle;
 static int command_output_max;
 static int brake_cycle_ms;
 static int use_brake;
@@ -317,13 +319,19 @@ _Float32 mapRange(_Float32 in1,_Float32 in2,_Float32 out1,_Float32 out2,_Float32
 
 void RosInterface::initParam() {
     if (!nh.hasParam("command_input_min")) {
-        nh.setParam ("command_input_min", 363);       
+        nh.setParam ("command_input_min", 1100);       
+    }
+    if (!nh.hasParam("command_input_idle")) {
+        nh.setParam ("command_input_idle", 1500);       
     }
     if (!nh.hasParam("command_input_max")) {
-        nh.setParam ("command_input_max", 1641);       
+        nh.setParam ("command_input_max", 1900);       
     }
     if (!nh.hasParam("command_output_min")) {
         nh.setParam ("command_output_min", 1000);       
+    }
+    if (!nh.hasParam("command_output_idle")) {
+        nh.setParam ("command_output_idle", 1500);       
     }
     if (!nh.hasParam("command_output_max")) {
         nh.setParam ("command_output_max", 2000);       
@@ -358,8 +366,10 @@ void RosInterface::initParam() {
 }
 void RosInterface::updateParam() {
     nh.getParam("command_input_min", command_input_min);
+    nh.getParam("command_input_idle", command_input_idle);
     nh.getParam("command_input_max", command_input_max);
     nh.getParam("command_output_min", command_output_min);
+    nh.getParam("command_output_idle", command_output_idle);
     nh.getParam("command_output_max", command_output_max);
     nh.getParam("use_brake", use_brake);
     nh.getParam("brake_cycle_ms", brake_cycle_ms);
@@ -438,12 +448,18 @@ void RosInterface::controlActuatorFromRadio (uint32_t throttling_value) {
     if (discrete_throttling) {
         throttling_value = discretizeValue(out1Level,out2Level,throttling_value);
     }
-    if (reverse==false) {
-        throttlingOutputMsg.data = std::max((uint32_t)1500,mapRange(command_input_min,command_input_max,command_output_min,command_output_max,throttling_value));
-        throttlingNormMsg.data = std::fmax((_Float32)0.0,mapRange((_Float32)command_input_min,(_Float32)command_input_max,-1.0,1.0,(_Float32)throttling_value));
+    
+    if (throttling_value<=command_input_idle) {
+        throttlingOutputMsg.data = mapRange(command_input_min,command_input_idle,command_output_min,command_output_idle,throttling_value);
+        throttlingNormMsg.data = mapRange((_Float32)command_input_min,(_Float32)command_input_idle,-1.0,0.0,(_Float32)throttling_value));
     } else {
-        throttlingOutputMsg.data = std::max((uint32_t)1000,mapRange(command_input_min,command_input_max,command_output_min,command_output_max,throttling_value));
-        throttlingNormMsg.data = std::fmax((_Float32)-1.0,mapRange((_Float32)command_input_min,(_Float32)command_input_max,-1.0,1.0,(_Float32)throttling_value));
+        throttlingOutputMsg.data = mapRange(command_input_idle,command_input_max,command_output_idle,command_output_max,throttling_value);
+        throttlingNormMsg.data = mapRange((_Float32)command_input_idle,(_Float32)command_input_max,0.0,1.0,(_Float32)throttling_value));        
+    }
+
+    if (reverse==false) {
+        throttlingOutputMsg.data = std::max((uint32_t)1500,throttlingOutputMsg.data);
+        throttlingNormMsg.data = std::fmax((_Float32)0.0,throttlingNormMsg.data);
     }
 
     act_throttling_output_pub.publish(throttlingOutputMsg);
