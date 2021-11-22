@@ -458,8 +458,8 @@ void RosInterface::controlActuatorFromRadio (uint32_t throttling_value) {
     }
 
     if (reverse==false) {
-        throttlingOutputMsg.data = std::max((uint32_t)1500,throttlingOutputMsg.data);
-        throttlingNormMsg.data = std::fmax((_Float32)0.0,throttlingNormMsg.data);
+        throttlingOutputMsg.data = std::max((uint32_t)1500,(uint32_t)throttlingOutputMsg.data);
+        throttlingNormMsg.data = std::fmax((_Float32)0.0,(_Float32)throttlingNormMsg.data);
     }
 
     act_throttling_output_pub.publish(throttlingOutputMsg);
