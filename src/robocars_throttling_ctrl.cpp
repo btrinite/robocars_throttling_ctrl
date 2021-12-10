@@ -478,7 +478,7 @@ void RosInterface::controlActuatorFromAutopilot (_Float32 throttling_value, __ui
     char frame_id[100];
     snprintf(frame_id, sizeof(frame_id), "%d", carId);
 
-    throttlingNormMsg.pwm = throttlingOutputMsg.data = std::max((uint32_t)1500,(uint32_t)mapRange(0.0,1.0,(_Float32)command_output_min,(_Float32)command_output_max,throttling_value));
+    throttlingNormMsg.pwm = throttlingOutputMsg.data = std::max((uint32_t)1500,(uint32_t)mapRange(0.0,1.0,(_Float32)command_output_idle,(_Float32)command_output_max,throttling_value));
     throttlingNormMsg.norm = throttling_value;
 
     act_throttling_output_pub.publish(throttlingOutputMsg);
